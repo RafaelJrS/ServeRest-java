@@ -1,0 +1,18 @@
+usuario_admin_valido:
+  nome: "{{DYNAMIC_NAME}}"
+  email: "{{DYNAMIC_EMAIL}}"
+  password: "{{DYNAMIC_PASSWORD}}"
+  administrador: "true"
+
+usuario_comum_valido:
+  nome: "{{DYNAMIC_NAME}}"
+  email: "{{DYNAMIC_EMAIL}}"
+  password: "{{DYNAMIC_PASSWORD}}"
+  administrador: "false"
+
+usuario_atualizado_valido:
+  nome: "{{DYNAMIC_NAME}}"
+  email: "{{DYNAMIC_EMAIL}}"
+  password: "{{DYNAMIC_PASSWORD}}"
+  administrador: "true"
+

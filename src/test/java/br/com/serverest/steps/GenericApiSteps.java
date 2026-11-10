@@ -1,0 +1,87 @@
+package br.com.serverest.steps;
+
+import br.com.serverest.client.ApiClient;
+import br.com.serverest.context.TestContext;
+import br.com.serverest.utils.DataPoolReader;
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.pt.Dado;
+import io.cucumber.java.pt.Entao;
+import io.cucumber.java.pt.Quando;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class GenericApiSteps {
+
+    private final TestContext testContext;
+    private final ApiClient apiClient;
+
+    public GenericApiSteps(TestContext testContext, ApiClient apiClient) {
+        this.testContext = testContext;
+        this.apiClient = apiClient;
+    }
+
+    @Dado("que a sessao da requisicao esta limpa e inicializada")
+    public void inicializarSessaoRequisicao() {
+        testContext.resetRequestSession();
+    }
+
+    @Dado("que carrego o payload dinamico {string} do arquivo {string}")
+    public void carregarPayloadDinamicoDoYaml(String datasetKey, String dataPoolFile) {
+        Map<String, Object> dynamicData = DataPoolReader.getDynamicPayload(dataPoolFile, datasetKey);
+        String jsonPayload = DataPoolReader.toJsonString(dynamicData);
+        testContext.setPayload(jsonPayload);
+        testContext.putState("lastPayloadMap", dynamicData);
+    }
+
+    @Dado("que informo o payload JSON diretamente:")
+    public void informarPayloadJsonDiretamente(String rawJsonPayload) {
+        testContext.setPayload(rawJsonPayload);
+    }
+
+    @Dado("que defino o parametro de rota {string} com o valor {string}")
+    public void definirParametroDeRota(String paramName, String paramValue) {
+        Object resolvedValue = testContext.getState(paramValue) != null
+                ? testContext.getState(paramValue)
+                : paramValue;
+        testContext.addPathParam(paramName, resolvedValue);
+    }
+
+    @Dado("que defino os parametros de consulta:")
+    public void definirParametrosDeConsulta(DataTable dataTable) {
+        Map<String, String> queryMap = dataTable.asMap(String.class, String.class);
+        queryMap.forEach(testContext::addQueryParam);
+    }
+
+    @Quando("envio uma requisicao {string} para a rota {string}")
+    public void enviarRequisicaoParaRota(String httpVerb, String endpoint) {
+        apiClient.sendRequest(httpVerb, endpoint);
+    }
+
+    @Entao("o status code da resposta deve ser {int}")
+    public void validarStatusCodeDaResposta(int expectedStatusCode) {
+        int actualStatusCode = testContext.getResponse().getStatusCode();
+        assertThat(actualStatusCode)
+                .as("Validação de HTTP Status Code")
+                .isEqualTo(expectedStatusCode);
+    }
+
+    @Entao("o campo {string} na resposta JSON deve conter {string}")
+    public void validarCampoRespostaJson(String jsonPath, String expectedValue) {
+        String actualValue = testContext.getResponse().jsonPath().getString(jsonPath);
+        assertThat(actualValue)
+                .as("Validação do campo JSONPath: " + jsonPath)
+                .isEqualTo(expectedValue);
+    }
+
+    @Entao("armazeno o valor do campo {string} da resposta na variavel de contexto {string}")
+    public void armazenarValorDaRespostaNoContexto(String jsonPath, String contextKey) {
+        Object extractedValue = testContext.getResponse().jsonPath().get(jsonPath);
+        assertThat(extractedValue)
+                .as("O campo extraído '" + jsonPath + "' não deve ser nulo")
+                .isNotNull();
+        testContext.putState(contextKey, extractedValue.toString());
+    }
+}
+
