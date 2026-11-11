@@ -7,6 +7,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.pt.Dado;
 import io.cucumber.java.pt.Entao;
 import io.cucumber.java.pt.Quando;
+import io.restassured.module.jsv.JsonSchemaValidator;
 
 import java.util.Map;
 
@@ -22,6 +23,11 @@ public class GenericApiSteps {
         this.apiClient = apiClient;
     }
 
+    @Dado("que utilizo a url da API {string}")
+    public void definirVariavelUrlDaApi(String uriVariable) {
+        testContext.setBaseUriVariable(uriVariable);
+    }
+
     @Dado("que a sessao da requisicao esta limpa e inicializada")
     public void inicializarSessaoRequisicao() {
         testContext.resetRequestSession();
@@ -33,6 +39,11 @@ public class GenericApiSteps {
         String jsonPayload = DataPoolReader.toJsonString(dynamicData);
         testContext.setPayload(jsonPayload);
         testContext.putState("lastPayloadMap", dynamicData);
+    }
+
+    @Dado("que possuo um usuario cadastrado a partir da massa {string} do arquivo {string}")
+    public void cadastrarUsuarioEPrepararCredenciaisDeLogin(String datasetKey, String dataPoolFile) {
+        apiClient.prepareRegisteredUserForLogin(dataPoolFile, datasetKey);
     }
 
     @Dado("que informo o payload JSON diretamente:")
@@ -59,6 +70,11 @@ public class GenericApiSteps {
         apiClient.sendRequest(httpVerb, endpoint);
     }
 
+    @Quando("executo o metodo POST de login")
+    public void executarMetodoPostDeLogin() {
+        apiClient.postLogin();
+    }
+
     @Entao("o status code da resposta deve ser {int}")
     public void validarStatusCodeDaResposta(int expectedStatusCode) {
         int actualStatusCode = testContext.getResponse().getStatusCode();
@@ -75,6 +91,22 @@ public class GenericApiSteps {
                 .isEqualTo(expectedValue);
     }
 
+    @Entao("o token Bearer deve ser gerado e salvo no contexto")
+    public void validarTokenBearerGeradoNoContexto() {
+        assertThat(testContext.getAuthToken())
+                .as("Token de autenticação Bearer armazenado no TestContext")
+                .isNotNull()
+                .startsWith("Bearer ");
+    }
+
+    @Entao("o contrato da resposta deve respeitar o schema {string}")
+    public void validarContratoJsonSchema(String schemaFilePath) {
+        testContext.getResponse()
+                .then()
+                .assertThat()
+                .body(JsonSchemaValidator.matchesJsonSchemaInClasspath(schemaFilePath));
+    }
+
     @Entao("armazeno o valor do campo {string} da resposta na variavel de contexto {string}")
     public void armazenarValorDaRespostaNoContexto(String jsonPath, String contextKey) {
         Object extractedValue = testContext.getResponse().jsonPath().get(jsonPath);
@@ -84,4 +116,3 @@ public class GenericApiSteps {
         testContext.putState(contextKey, extractedValue.toString());
     }
 }
-

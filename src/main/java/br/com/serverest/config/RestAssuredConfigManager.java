@@ -10,11 +10,22 @@ import io.restassured.specification.RequestSpecification;
 
 public final class RestAssuredConfigManager {
 
+    private static final String DEFAULT_URI_KEY = "api.base.uri";
+
     private RestAssuredConfigManager() {
     }
 
     public static RequestSpecification createBaseSpecification() {
-        String baseUri = ConfigurationManager.getProperty("api.base.uri");
+        return createSpecificationForUri(ConfigurationManager.getProperty(DEFAULT_URI_KEY));
+    }
+
+    public static RequestSpecification createSpecificationForVariable(String uriKeyOrUrl) {
+        String configuredUri = ConfigurationManager.getProperty(uriKeyOrUrl);
+        String targetUri = (configuredUri != null && !configuredUri.isBlank()) ? configuredUri : uriKeyOrUrl;
+        return createSpecificationForUri(targetUri);
+    }
+
+    private static RequestSpecification createSpecificationForUri(String baseUri) {
         return new RequestSpecBuilder()
                 .setBaseUri(baseUri)
                 .setContentType(ContentType.JSON)
@@ -37,4 +48,3 @@ public final class RestAssuredConfigManager {
                 .logConfig(logConfig);
     }
 }
-

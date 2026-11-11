@@ -1,0 +1,10 @@
+usuario_base_para_login:
+  nome: "{{DYNAMIC_NAME}}"
+  email: "{{DYNAMIC_EMAIL}}"
+  password: "{{DYNAMIC_PASSWORD}}"
+  administrador: "true"
+
+login_credenciais_invalidas:
+  email: "{{DYNAMIC_EMAIL}}"
+  password: "{{DYNAMIC_PASSWORD}}"
+

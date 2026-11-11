@@ -13,6 +13,8 @@ public class TestContext {
     private RequestSpecification requestSpec;
     private Response response;
     private Object payload;
+    private String authToken;
+    private String activeUriVariable = "api.base.uri";
     private final Map<String, Object> pathParams = new HashMap<>();
     private final Map<String, Object> queryParams = new HashMap<>();
     private final Map<String, String> headers = new HashMap<>();
@@ -23,25 +25,42 @@ public class TestContext {
     }
 
     public void resetRequestSession() {
-        this.requestSpec = RestAssured.given().spec(RestAssuredConfigManager.createBaseSpecification());
+        this.requestSpec = RestAssured.given()
+                .spec(RestAssuredConfigManager.createSpecificationForVariable(this.activeUriVariable));
         this.payload = null;
         this.pathParams.clear();
         this.queryParams.clear();
         this.headers.clear();
     }
 
+    public void setBaseUriVariable(String uriKeyOrUrl) {
+        this.activeUriVariable = uriKeyOrUrl;
+        resetRequestSession();
+    }
+
     public RequestSpecification buildPreparedRequest() {
         RequestSpecification spec = RestAssured.given().spec(this.requestSpec);
+        applyAuthAndHeaders(spec);
+        applyParameters(spec);
+        return (payload != null) ? spec.body(payload) : spec;
+    }
+
+    private void applyAuthAndHeaders(RequestSpecification spec) {
+        if (authToken != null && !authToken.isBlank()) {
+            spec.header("Authorization", authToken);
+        }
         if (!headers.isEmpty()) {
             spec.headers(headers);
         }
+    }
+
+    private void applyParameters(RequestSpecification spec) {
         if (!pathParams.isEmpty()) {
             spec.pathParams(pathParams);
         }
         if (!queryParams.isEmpty()) {
             spec.queryParams(queryParams);
         }
-        return (payload != null) ? spec.body(payload) : spec;
     }
 
     public void setPayload(Object payload) {
@@ -68,6 +87,14 @@ public class TestContext {
         this.response = response;
     }
 
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
     public void putState(String key, Object value) {
         this.scenarioState.put(key, value);
     }
@@ -76,4 +103,3 @@ public class TestContext {
         return this.scenarioState.get(key);
     }
 }
-
