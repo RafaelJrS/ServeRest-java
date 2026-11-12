@@ -31,16 +31,28 @@ public class ApiClient {
     }
 
     public void prepareRegisteredUserForLogin(String dataPoolFile, String datasetKey) {
-        Map<String, Object> userMap = DataPoolReader.getDynamicPayload(dataPoolFile, datasetKey);
-        testContext.resetRequestSession();
-        testContext.setPayload(DataPoolReader.toJsonString(userMap));
-        sendRequest("POST", "/usuarios");
-
+        Map<String, Object> userMap = registerDynamicUser(dataPoolFile, datasetKey);
         Map<String, Object> credentials = new LinkedHashMap<>();
         credentials.put("email", userMap.get("email"));
         credentials.put("password", userMap.get("password"));
         testContext.resetRequestSession();
         testContext.setPayload(DataPoolReader.toJsonString(credentials));
+    }
+
+    public void registerUserAndStoreContext(String dataPoolFile, String datasetKey, String idContextKey) {
+        Map<String, Object> userMap = registerDynamicUser(dataPoolFile, datasetKey);
+        String createdId = testContext.getResponse().jsonPath().getString("_id");
+        testContext.putState(idContextKey, createdId);
+        testContext.putState("LAST_REGISTERED_USER_JSON", DataPoolReader.toJsonString(userMap));
+        testContext.resetRequestSession();
+    }
+
+    private Map<String, Object> registerDynamicUser(String dataPoolFile, String datasetKey) {
+        Map<String, Object> userMap = DataPoolReader.getDynamicPayload(dataPoolFile, datasetKey);
+        testContext.resetRequestSession();
+        testContext.setPayload(DataPoolReader.toJsonString(userMap));
+        sendRequest("POST", "/usuarios");
+        return userMap;
     }
 
     private void captureTokenIfLoginSucceeded(Method method, String endpoint, Response response) {

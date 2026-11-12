@@ -15,4 +15,3 @@ usuario_atualizado_valido:
   email: "{{DYNAMIC_EMAIL}}"
   password: "{{DYNAMIC_PASSWORD}}"
   administrador: "true"
-

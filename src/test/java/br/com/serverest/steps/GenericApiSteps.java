@@ -46,6 +46,18 @@ public class GenericApiSteps {
         apiClient.prepareRegisteredUserForLogin(dataPoolFile, datasetKey);
     }
 
+    @Dado("que possuo um usuario recem cadastrado na variavel {string} a partir da massa {string} do arquivo {string}")
+    public void cadastrarUsuarioESalvarIdNoContexto(String idContextKey, String datasetKey, String dataPoolFile) {
+        apiClient.registerUserAndStoreContext(dataPoolFile, datasetKey, idContextKey);
+    }
+
+    @Dado("que reutilizo o mesmo payload do usuario recem cadastrado")
+    public void reutilizarPayloadDoUsuarioRecemCadastrado() {
+        Object lastUserJson = testContext.getState("LAST_REGISTERED_USER_JSON");
+        assertThat(lastUserJson).as("Payload do último usuário cadastrado no contexto").isNotNull();
+        testContext.setPayload(lastUserJson.toString());
+    }
+
     @Dado("que informo o payload JSON diretamente:")
     public void informarPayloadJsonDiretamente(String rawJsonPayload) {
         testContext.setPayload(rawJsonPayload);
@@ -89,6 +101,14 @@ public class GenericApiSteps {
         assertThat(actualValue)
                 .as("Validação do campo JSONPath: " + jsonPath)
                 .isEqualTo(expectedValue);
+    }
+
+    @Entao("o campo {string} na resposta JSON nao deve ser nulo")
+    public void validarCampoRespostaJsonNaoNulo(String jsonPath) {
+        Object actualValue = testContext.getResponse().jsonPath().get(jsonPath);
+        assertThat(actualValue)
+                .as("O campo JSONPath '" + jsonPath + "' deve estar presente e não ser nulo")
+                .isNotNull();
     }
 
     @Entao("o token Bearer deve ser gerado e salvo no contexto")
