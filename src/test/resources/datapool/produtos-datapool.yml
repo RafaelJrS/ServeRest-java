@@ -1,0 +1,18 @@
+produto_valido:
+  nome: "{{DYNAMIC_PRODUCT}}"
+  preco: 470
+  descricao: "Mouse Gamer RGB Sensor Optico"
+  quantidade: 150
+
+produto_atualizado_valido:
+  nome: "{{DYNAMIC_PRODUCT}}"
+  preco: 890
+  descricao: "Teclado Mecanico Switch Red"
+  quantidade: 75
+
+produto_via_put_valido:
+  nome: "{{DYNAMIC_PRODUCT}}"
+  preco: 1250
+  descricao: "Monitor IPS 144Hz"
+  quantidade: 40
+

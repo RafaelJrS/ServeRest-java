@@ -33,6 +33,16 @@ public class GenericApiSteps {
         testContext.resetRequestSession();
     }
 
+    @Dado("que estou autenticado com um usuario da massa {string} do arquivo {string}")
+    public void autenticarComUsuarioDinamico(String datasetKey, String dataPoolFile) {
+        apiClient.authenticateWithDynamicUser(dataPoolFile, datasetKey);
+    }
+
+    @Dado("que nao possuo token de autenticacao na sessao")
+    public void removerTokenDeAutenticacaoDaSessao() {
+        testContext.setAuthToken(null);
+    }
+
     @Dado("que carrego o payload dinamico {string} do arquivo {string}")
     public void carregarPayloadDinamicoDoYaml(String datasetKey, String dataPoolFile) {
         Map<String, Object> dynamicData = DataPoolReader.getDynamicPayload(dataPoolFile, datasetKey);
@@ -56,6 +66,18 @@ public class GenericApiSteps {
         Object lastUserJson = testContext.getState("LAST_REGISTERED_USER_JSON");
         assertThat(lastUserJson).as("Payload do último usuário cadastrado no contexto").isNotNull();
         testContext.setPayload(lastUserJson.toString());
+    }
+
+    @Dado("que possuo um produto recem cadastrado na variavel {string} a partir da massa {string} do arquivo {string}")
+    public void cadastrarProdutoESalvarIdNoContexto(String idContextKey, String datasetKey, String dataPoolFile) {
+        apiClient.registerProductAndStoreContext(dataPoolFile, datasetKey, idContextKey);
+    }
+
+    @Dado("que reutilizo o mesmo payload do produto recem cadastrado")
+    public void reutilizarPayloadDoProdutoRecemCadastrado() {
+        Object lastProductJson = testContext.getState("LAST_REGISTERED_PRODUCT_JSON");
+        assertThat(lastProductJson).as("Payload do último produto cadastrado no contexto").isNotNull();
+        testContext.setPayload(lastProductJson.toString());
     }
 
     @Dado("que informo o payload JSON diretamente:")
