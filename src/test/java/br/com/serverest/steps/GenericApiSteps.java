@@ -45,7 +45,8 @@ public class GenericApiSteps {
 
     @Dado("que carrego o payload dinamico {string} do arquivo {string}")
     public void carregarPayloadDinamicoDoYaml(String datasetKey, String dataPoolFile) {
-        Map<String, Object> dynamicData = DataPoolReader.getDynamicPayload(dataPoolFile, datasetKey);
+        Map<String, Object> dynamicData = DataPoolReader.getDynamicPayload(
+                dataPoolFile, datasetKey, testContext.getScenarioState());
         String jsonPayload = DataPoolReader.toJsonString(dynamicData);
         testContext.setPayload(jsonPayload);
         testContext.putState("lastPayloadMap", dynamicData);
@@ -78,6 +79,11 @@ public class GenericApiSteps {
         Object lastProductJson = testContext.getState("LAST_REGISTERED_PRODUCT_JSON");
         assertThat(lastProductJson).as("Payload do último produto cadastrado no contexto").isNotNull();
         testContext.setPayload(lastProductJson.toString());
+    }
+
+    @Dado("que possuo um carrinho recem cadastrado na variavel {string} a partir da massa {string} do arquivo {string}")
+    public void cadastrarCarrinhoESalvarIdNoContexto(String idContextKey, String datasetKey, String dataPoolFile) {
+        apiClient.registerCartAndStoreContext(dataPoolFile, datasetKey, idContextKey);
     }
 
     @Dado("que informo o payload JSON diretamente:")

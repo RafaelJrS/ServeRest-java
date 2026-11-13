@@ -54,9 +54,7 @@ public class ApiClient {
     }
 
     public void registerProductAndStoreContext(String dataPoolFile, String datasetKey, String idContextKey) {
-        if (testContext.getAuthToken() == null || testContext.getAuthToken().isBlank()) {
-            authenticateWithDynamicUser("usuarios-datapool.yml", "usuario_admin_valido");
-        }
+        ensureAuthenticatedAdmin();
         Map<String, Object> productMap = DataPoolReader.getDynamicPayload(dataPoolFile, datasetKey);
         String productJson = DataPoolReader.toJsonString(productMap);
         testContext.resetRequestSession();
@@ -65,6 +63,26 @@ public class ApiClient {
         testContext.putState(idContextKey, testContext.getResponse().jsonPath().getString("_id"));
         testContext.putState("LAST_REGISTERED_PRODUCT_JSON", productJson);
         testContext.resetRequestSession();
+    }
+
+    public void registerCartAndStoreContext(String dataPoolFile, String datasetKey, String idContextKey) {
+        ensureAuthenticatedAdmin();
+        if (testContext.getState("ID_PRODUTO") == null) {
+            registerProductAndStoreContext("produtos-datapool.yml", "produto_valido", "ID_PRODUTO");
+        }
+        Map<String, Object> cartMap = DataPoolReader.getDynamicPayload(
+                dataPoolFile, datasetKey, testContext.getScenarioState());
+        testContext.resetRequestSession();
+        testContext.setPayload(DataPoolReader.toJsonString(cartMap));
+        sendRequest("POST", "/carrinhos");
+        testContext.putState(idContextKey, testContext.getResponse().jsonPath().getString("_id"));
+        testContext.resetRequestSession();
+    }
+
+    private void ensureAuthenticatedAdmin() {
+        if (testContext.getAuthToken() == null || testContext.getAuthToken().isBlank()) {
+            authenticateWithDynamicUser("usuarios-datapool.yml", "usuario_admin_valido");
+        }
     }
 
     private Map<String, Object> registerDynamicUser(String dataPoolFile, String datasetKey) {

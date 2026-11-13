@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Contrato de Listagem de Carrinhos (GET /carrinhos - 200)",
+  "type": "object",
+  "required": [
+    "quantidade",
+    "carrinhos"
+  ],
+  "properties": {
+    "quantidade": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "carrinhos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "produtos",
+          "precoTotal",
+          "quantidadeTotal",
+          "idUsuario",
+          "_id"
+        ],
+        "properties": {
+          "produtos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["idProduto", "quantidade", "precoUnitario"],
+              "properties": {
+                "idProduto": { "type": "string" },
+                "quantidade": { "type": "integer" },
+                "precoUnitario": { "type": "integer" }
+              }
+            }
+          },
+          "precoTotal": { "type": "integer" },
+          "quantidadeTotal": { "type": "integer" },
+          "idUsuario": { "type": "string" },
+          "_id": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

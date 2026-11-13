@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,5 +102,9 @@ public class TestContext {
 
     public Object getState(String key) {
         return this.scenarioState.get(key);
+    }
+
+    public Map<String, Object> getScenarioState() {
+        return Collections.unmodifiableMap(this.scenarioState);
     }
 }

@@ -1,0 +1,22 @@
+carrinho_valido:
+  produtos:
+    - idProduto: "{{ID_PRODUTO}}"
+      quantidade: 2
+
+carrinho_produto_duplicado:
+  produtos:
+    - idProduto: "{{ID_PRODUTO}}"
+      quantidade: 1
+    - idProduto: "{{ID_PRODUTO}}"
+      quantidade: 1
+
+carrinho_estoque_insuficiente:
+  produtos:
+    - idProduto: "{{ID_PRODUTO}}"
+      quantidade: 999999
+
+carrinho_produto_inexistente:
+  produtos:
+    - idProduto: "idProdInexist123"
+      quantidade: 1
+

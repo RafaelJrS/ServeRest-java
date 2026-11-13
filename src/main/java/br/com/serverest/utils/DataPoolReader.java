@@ -7,7 +7,9 @@ import net.datafaker.Faker;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -22,12 +24,17 @@ public final class DataPoolReader {
     }
 
     public static Map<String, Object> getDynamicPayload(String dataPoolFile, String datasetKey) {
+        return getDynamicPayload(dataPoolFile, datasetKey, Collections.emptyMap());
+    }
+
+    public static Map<String, Object> getDynamicPayload(
+            String dataPoolFile, String datasetKey, Map<String, Object> contextVars) {
         Map<String, Map<String, Object>> rootData = readYamlDataPool(dataPoolFile);
         Map<String, Object> rawTemplate = rootData.get(datasetKey);
         if (rawTemplate == null) {
             throw new IllegalArgumentException("Chave '" + datasetKey + "' não encontrada em: " + dataPoolFile);
         }
-        return resolvePlaceholders(rawTemplate);
+        return resolveMapPlaceholders(rawTemplate, contextVars);
     }
 
     public static String toJsonString(Map<String, Object> payloadMap) {
@@ -50,15 +57,33 @@ public final class DataPoolReader {
         }
     }
 
-    private static Map<String, Object> resolvePlaceholders(Map<String, Object> template) {
+    private static Map<String, Object> resolveMapPlaceholders(
+            Map<String, Object> template, Map<String, Object> contextVars) {
         Map<String, Object> resolved = new LinkedHashMap<>();
-        template.forEach((key, value) -> resolved.put(key, interpolateValue(value)));
+        template.forEach((key, value) -> resolved.put(key, interpolateValue(value, contextVars)));
         return resolved;
     }
 
-    private static Object interpolateValue(Object value) {
-        if (!(value instanceof String text)) {
-            return value;
+    @SuppressWarnings("unchecked")
+    private static Object interpolateValue(Object value, Map<String, Object> contextVars) {
+        if (value instanceof Map<?, ?> nestedMap) {
+            return resolveMapPlaceholders((Map<String, Object>) nestedMap, contextVars);
+        }
+        if (value instanceof List<?> nestedList) {
+            return nestedList.stream().map(item -> interpolateValue(item, contextVars)).toList();
+        }
+        if (value instanceof String text) {
+            return interpolateStringToken(text, contextVars);
+        }
+        return value;
+    }
+
+    private static Object interpolateStringToken(String text, Map<String, Object> contextVars) {
+        if (text.startsWith("{{") && text.endsWith("}}")) {
+            String tokenName = text.substring(2, text.length() - 2);
+            if (contextVars.containsKey(tokenName)) {
+                return contextVars.get(tokenName);
+            }
         }
         return switch (text) {
             case "{{DYNAMIC_NAME}}" -> FAKER.name().fullName();
@@ -69,4 +94,3 @@ public final class DataPoolReader {
         };
     }
 }
-
