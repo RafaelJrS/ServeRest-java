@@ -22,6 +22,8 @@ public class ApiClient {
         RequestSpecification preparedRequest = testContext.buildPreparedRequest();
         Response response = preparedRequest.request(method, endpoint);
         testContext.setResponse(response);
+        testContext.putState("LAST_HTTP_VERB", method.name());
+        testContext.putState("LAST_ENDPOINT", endpoint);
         captureTokenIfLoginSucceeded(method, endpoint, response);
         return response;
     }

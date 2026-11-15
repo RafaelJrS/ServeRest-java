@@ -128,9 +128,12 @@ O projeto já inclui o **Maven Wrapper** (`mvnw` / `mvnw.cmd`), exigindo apenas 
 
 ## 📊 6. Relatórios de Execução e Sign-Off de Qualidade
 
-* 📋 **Relatório Executivo Final de Testes (59/59 PASS):** 👉 **[Acesse aqui o RELATORIO_FINAL_DE_TESTES.md](./RELATORIO_FINAL_DE_TESTES.md)**
-* **Relatório Visual HTML (gerado na execução):** `target/cucumber-reports/cucumber.html` *(basta abrir no navegador)*
-* **Relatório JSON (para integração em CI/CD):** `target/cucumber-reports/cucumber.json`
+A cada execução da suíte regressiva completa (`.\mvnw.cmd test`), o framework atualiza automaticamente 3 formatos de relatórios executivos prontos para auditoria, envio por e-mail ou documentação de entrega mensal:
+
+* 📄 **Relatório Executivo em PDF (Pronto para anexo/e-mail):** 👉 **[relatorios/RELATORIO_EXECUTIVO_QA.pdf](./relatorios/RELATORIO_EXECUTIVO_QA.pdf)**
+* 🌐 **Dashboard Executivo Visual em HTML:** 👉 **[relatorios/RELATORIO_EXECUTIVO_QA.html](./relatorios/RELATORIO_EXECUTIVO_QA.html)**
+* 📋 **Relatório Executivo em Markdown (GitHub):** 👉 **[RELATORIO_FINAL_DE_TESTES.md](./RELATORIO_FINAL_DE_TESTES.md)**
+* 🛠️ **Relatório Técnico Nativo do Cucumber:** `target/cucumber-reports/cucumber.html` e `cucumber.json`
 
 > 💡 Em caso de falha em qualquer cenário, o `CucumberHooks` anexa automaticamente o payload JSON completo retornado pela API dentro do relatório HTML para facilitar o diagnóstico.
 

@@ -3,7 +3,7 @@
 **Projeto:** ServeRest API Automation (`br.com.serverest:serverest-api-automation`)  
 **Ambiente Alvo:** `https://serverest.dev`  
 **Stack:** Java 17 + REST-Assured 5.4.0 + Cucumber 7.18.0 + PicoContainer + JUnit 5 Platform  
-**Última Execução Regressiva Completa:** `14/11/2026 às 22:13:37` (59/59 PASS)  
+**Última Execução Regressiva Completa:** `14/11/2026 às 22:24:19` (59/59 PASS)  
 **Status Global da Release:** 🟢 **APROVADO (100% PASS — 59/59 Cenários)**
 
 ---
