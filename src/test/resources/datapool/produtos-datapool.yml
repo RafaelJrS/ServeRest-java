@@ -16,3 +16,14 @@ produto_via_put_valido:
   descricao: "Monitor IPS 144Hz"
   quantidade: 40
 
+produto_preco_zero_invalido:
+  nome: "{{DYNAMIC_PRODUCT}}"
+  preco: 0
+  descricao: "Produto com preco invalido"
+  quantidade: 10
+
+produto_quantidade_negativa:
+  nome: "{{DYNAMIC_PRODUCT}}"
+  preco: 100
+  descricao: "Produto com quantidade negativa"
+  quantidade: -1

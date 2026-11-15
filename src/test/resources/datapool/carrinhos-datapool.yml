@@ -20,3 +20,7 @@ carrinho_produto_inexistente:
     - idProduto: "idProdInexist123"
       quantidade: 1
 
+carrinho_quantidade_zero_invalida:
+  produtos:
+    - idProduto: "{{ID_PRODUTO}}"
+      quantidade: 0

@@ -3,7 +3,7 @@
 Funcionalidade: Gestão de Carrinhos na API (/carrinhos, /carrinhos/{_id}, /concluir-compra e /cancelar-compra)
   Como um QA utilizando a estrutura padronizada Multi-API
   Quero exercitar todos os endpoints de Carrinhos (GET, POST, GET/{_id}, DELETE concluir-compra e DELETE cancelar-compra)
-  Para validar as regras de negócio de sucesso, controle de estoque, permissões (401), exceções (400) e contratos da API ServeRest
+  Para validar as regras de negócio de sucesso, prova matemática de estoque, permissões (401), exceções (400) e contratos da API ServeRest
 
   Contexto:
     Dado que utilizo a url da API "API_SERVEREST"
@@ -16,6 +16,7 @@ Funcionalidade: Gestão de Carrinhos na API (/carrinhos, /carrinhos/{_id}, /conc
   Cenário: Listar todos os carrinhos cadastrados na API (GET /carrinhos - Status 200)
     Quando envio uma requisicao "GET" para a rota "/carrinhos"
     Entao o status code da resposta deve ser 200
+    E o tempo de resposta deve ser menor que 5000 milissegundos
     E o campo "quantidade" na resposta JSON nao deve ser nulo
     E o contrato da resposta deve respeitar o schema "schemas/carrinhos-lista-200-schema.json"
 
@@ -28,7 +29,7 @@ Funcionalidade: Gestão de Carrinhos na API (/carrinhos, /carrinhos/{_id}, /conc
     E o contrato da resposta deve respeitar o schema "schemas/carrinhos-lista-200-schema.json"
 
   # =========================================================================
-  # 2. POST /carrinhos - Cadastrar carrinho (201, 400x4, 401)
+  # 2. POST /carrinhos - Cadastrar carrinho (201, 400x5, 401x2)
   # =========================================================================
   @post_carrinhos_201
   Cenário: Cadastrar um novo carrinho com sucesso (POST /carrinhos - Status 201)
@@ -36,6 +37,7 @@ Funcionalidade: Gestão de Carrinhos na API (/carrinhos, /carrinhos/{_id}, /conc
     E que carrego o payload dinamico "carrinho_valido" do arquivo "carrinhos-datapool.yml"
     Quando envio uma requisicao "POST" para a rota "/carrinhos"
     Entao o status code da resposta deve ser 201
+    E o tempo de resposta deve ser menor que 5000 milissegundos
     E o campo "message" na resposta JSON deve conter "Cadastro realizado com sucesso"
     E o campo "_id" na resposta JSON nao deve ser nulo
     E o contrato da resposta deve respeitar o schema "schemas/carrinhos-post-201-schema.json"
@@ -72,9 +74,25 @@ Funcionalidade: Gestão de Carrinhos na API (/carrinhos, /carrinhos/{_id}, /conc
     Entao o status code da resposta deve ser 400
     E o campo "message" na resposta JSON deve conter "Produto não possui quantidade suficiente"
 
+  @post_carrinhos_quantidade_zero_400
+  Cenário: Impedir cadastro de carrinho com quantidade de item igual a zero (POST /carrinhos - Status 400)
+    Dado que possuo um produto recem cadastrado na variavel "ID_PRODUTO" a partir da massa "produto_valido" do arquivo "produtos-datapool.yml"
+    E que carrego o payload dinamico "carrinho_quantidade_zero_invalida" do arquivo "carrinhos-datapool.yml"
+    Quando envio uma requisicao "POST" para a rota "/carrinhos"
+    Entao o status code da resposta deve ser 400
+    E o campo "'produtos[0].quantidade'" na resposta JSON deve conter "produtos[0].quantidade deve ser um número positivo"
+
   @post_carrinhos_401
   Cenário: Impedir cadastro de carrinho sem Token Bearer de autenticacao (POST /carrinhos - Status 401)
     Dado que nao possuo token de autenticacao na sessao
+    E que carrego o payload dinamico "carrinho_produto_inexistente" do arquivo "carrinhos-datapool.yml"
+    Quando envio uma requisicao "POST" para a rota "/carrinhos"
+    Entao o status code da resposta deve ser 401
+    E o campo "message" na resposta JSON deve conter "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+
+  @post_carrinhos_token_adulterado_401
+  Cenário: Impedir cadastro de carrinho com Token Bearer adulterado na sessao (POST /carrinhos - Status 401)
+    Dado que informo um token de autenticacao invalido "Bearer token.jwt.adulterado.invalido123" na sessao
     E que carrego o payload dinamico "carrinho_produto_inexistente" do arquivo "carrinhos-datapool.yml"
     Quando envio uma requisicao "POST" para a rota "/carrinhos"
     Entao o status code da resposta deve ser 401
@@ -146,3 +164,35 @@ Funcionalidade: Gestão de Carrinhos na API (/carrinhos, /carrinhos/{_id}, /conc
     Entao o status code da resposta deve ser 401
     E o campo "message" na resposta JSON deve conter "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
 
+  # =========================================================================
+  # 6. PROVA MATEMÁTICA DE ESTOQUE (E2E Stateful Inventory Consistency)
+  # =========================================================================
+  @e2e_estoque_cancelar_compra_200
+  Cenário: Validar baixa matematica de estoque ao criar carrinho e reabastecimento ao cancelar compra
+    Dado que possuo um carrinho recem cadastrado na variavel "ID_CARRINHO" a partir da massa "carrinho_valido" do arquivo "carrinhos-datapool.yml"
+    E que defino o parametro de rota "_id" com o valor "ID_PRODUTO"
+    Quando envio uma requisicao "GET" para a rota "/produtos/{_id}"
+    Entao o status code da resposta deve ser 200
+    E o campo "quantidade" na resposta JSON deve conter "148"
+
+    Dado que a sessao da requisicao esta limpa e inicializada
+    Quando envio uma requisicao "DELETE" para a rota "/carrinhos/cancelar-compra"
+    Entao o status code da resposta deve ser 200
+
+    Dado que a sessao da requisicao esta limpa e inicializada
+    E que defino o parametro de rota "_id" com o valor "ID_PRODUTO"
+    Quando envio uma requisicao "GET" para a rota "/produtos/{_id}"
+    Entao o status code da resposta deve ser 200
+    E o campo "quantidade" na resposta JSON deve conter "150"
+
+  @e2e_estoque_concluir_compra_200
+  Cenário: Validar baixa definitiva de estoque no produto apos concluir a compra
+    Dado que possuo um carrinho recem cadastrado na variavel "ID_CARRINHO" a partir da massa "carrinho_valido" do arquivo "carrinhos-datapool.yml"
+    Quando envio uma requisicao "DELETE" para a rota "/carrinhos/concluir-compra"
+    Entao o status code da resposta deve ser 200
+
+    Dado que a sessao da requisicao esta limpa e inicializada
+    E que defino o parametro de rota "_id" com o valor "ID_PRODUTO"
+    Quando envio uma requisicao "GET" para a rota "/produtos/{_id}"
+    Entao o status code da resposta deve ser 200
+    E o campo "quantidade" na resposta JSON deve conter "148"

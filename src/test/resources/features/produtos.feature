@@ -3,7 +3,7 @@
 Funcionalidade: Gestão de Produtos na API (/produtos e /produtos/{_id})
   Como um QA utilizando a estrutura padronizada Multi-API
   Quero exercitar todos os endpoints de Produtos (GET, POST, GET/{_id}, PUT/{_id}, DELETE/{_id})
-  Para validar as regras de negócio de sucesso, permissões (401/403), exceções (400) e contratos da API ServeRest
+  Para validar as regras de negócio de sucesso, permissões (401/403), limites (400), integridade referencial e contratos da API ServeRest
 
   Contexto:
     Dado que utilizo a url da API "API_SERVEREST"
@@ -16,6 +16,7 @@ Funcionalidade: Gestão de Produtos na API (/produtos e /produtos/{_id})
   Cenário: Listar todos os produtos cadastrados na API (GET /produtos - Status 200)
     Quando envio uma requisicao "GET" para a rota "/produtos"
     Entao o status code da resposta deve ser 200
+    E o tempo de resposta deve ser menor que 5000 milissegundos
     E o campo "quantidade" na resposta JSON nao deve ser nulo
     E o contrato da resposta deve respeitar o schema "schemas/produtos-lista-200-schema.json"
 
@@ -36,6 +37,7 @@ Funcionalidade: Gestão de Produtos na API (/produtos e /produtos/{_id})
     E que carrego o payload dinamico "produto_valido" do arquivo "produtos-datapool.yml"
     Quando envio uma requisicao "POST" para a rota "/produtos"
     Entao o status code da resposta deve ser 201
+    E o tempo de resposta deve ser menor que 5000 milissegundos
     E o campo "message" na resposta JSON deve conter "Cadastro realizado com sucesso"
     E o campo "_id" na resposta JSON nao deve ser nulo
     E o contrato da resposta deve respeitar o schema "schemas/produtos-post-201-schema.json"
@@ -48,9 +50,33 @@ Funcionalidade: Gestão de Produtos na API (/produtos e /produtos/{_id})
     Entao o status code da resposta deve ser 400
     E o campo "message" na resposta JSON deve conter "Já existe produto com esse nome"
 
+  @post_produtos_preco_zero_400
+  Cenário: Impedir cadastro de produto com preco igual a zero (POST /produtos - Status 400)
+    Dado que estou autenticado com um usuario da massa "usuario_admin_valido" do arquivo "usuarios-datapool.yml"
+    E que carrego o payload dinamico "produto_preco_zero_invalido" do arquivo "produtos-datapool.yml"
+    Quando envio uma requisicao "POST" para a rota "/produtos"
+    Entao o status code da resposta deve ser 400
+    E o campo "preco" na resposta JSON deve conter "preco deve ser um número positivo"
+
+  @post_produtos_quantidade_negativa_400
+  Cenário: Impedir cadastro de produto com quantidade negativa (POST /produtos - Status 400)
+    Dado que estou autenticado com um usuario da massa "usuario_admin_valido" do arquivo "usuarios-datapool.yml"
+    E que carrego o payload dinamico "produto_quantidade_negativa" do arquivo "produtos-datapool.yml"
+    Quando envio uma requisicao "POST" para a rota "/produtos"
+    Entao o status code da resposta deve ser 400
+    E o campo "quantidade" na resposta JSON deve conter "quantidade deve ser maior ou igual a 0"
+
   @post_produtos_401
   Cenário: Impedir cadastro de produto sem Token Bearer de autenticacao (POST /produtos - Status 401)
     Dado que nao possuo token de autenticacao na sessao
+    E que carrego o payload dinamico "produto_valido" do arquivo "produtos-datapool.yml"
+    Quando envio uma requisicao "POST" para a rota "/produtos"
+    Entao o status code da resposta deve ser 401
+    E o campo "message" na resposta JSON deve conter "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+
+  @post_produtos_token_adulterado_401
+  Cenário: Impedir cadastro de produto com Token Bearer adulterado na sessao (POST /produtos - Status 401)
+    Dado que informo um token de autenticacao invalido "Bearer token.jwt.adulterado.invalido123" na sessao
     E que carrego o payload dinamico "produto_valido" do arquivo "produtos-datapool.yml"
     Quando envio uma requisicao "POST" para a rota "/produtos"
     Entao o status code da resposta deve ser 401
@@ -133,7 +159,7 @@ Funcionalidade: Gestão de Produtos na API (/produtos e /produtos/{_id})
     E o campo "message" na resposta JSON deve conter "Rota exclusiva para administradores"
 
   # =========================================================================
-  # 5. DELETE /produtos/{_id} - Excluir produto (200, 401, 403)
+  # 5. DELETE /produtos/{_id} - Excluir produto (200, 400, 401, 403)
   # =========================================================================
   @delete_produto_200
   Cenário: Excluir um produto existente com sucesso (DELETE /produtos/{_id} - Status 200)
@@ -150,6 +176,15 @@ Funcionalidade: Gestão de Produtos na API (/produtos e /produtos/{_id})
     Quando envio uma requisicao "DELETE" para a rota "/produtos/{_id}"
     Entao o status code da resposta deve ser 200
     E o campo "message" na resposta JSON deve conter "Nenhum registro excluído"
+
+  @delete_produto_em_carrinho_400
+  Cenário: Impedir exclusao de produto que faz parte de um carrinho ativo (DELETE /produtos/{_id} - Status 400)
+    Dado que possuo um carrinho recem cadastrado na variavel "ID_CARRINHO" a partir da massa "carrinho_valido" do arquivo "carrinhos-datapool.yml"
+    E que defino o parametro de rota "_id" com o valor "ID_PRODUTO"
+    Quando envio uma requisicao "DELETE" para a rota "/produtos/{_id}"
+    Entao o status code da resposta deve ser 400
+    E o campo "message" na resposta JSON deve conter "Não é permitido excluir produto que faz parte de carrinho"
+    E o campo "idCarrinhos" na resposta JSON nao deve ser nulo
 
   @delete_produto_401
   Cenário: Impedir exclusao de produto sem Token Bearer de autenticacao (DELETE /produtos/{_id} - Status 401)

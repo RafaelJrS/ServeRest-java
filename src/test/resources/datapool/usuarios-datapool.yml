@@ -15,3 +15,9 @@ usuario_atualizado_valido:
   email: "{{DYNAMIC_EMAIL}}"
   password: "{{DYNAMIC_PASSWORD}}"
   administrador: "true"
+
+usuario_flag_admin_invalida:
+  nome: "{{DYNAMIC_NAME}}"
+  email: "{{DYNAMIC_EMAIL}}"
+  password: "{{DYNAMIC_PASSWORD}}"
+  administrador: "sim"

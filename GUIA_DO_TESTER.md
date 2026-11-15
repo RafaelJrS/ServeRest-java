@@ -98,6 +98,7 @@ Funcionalidade: Validação dos Endpoints da API
     E que carrego o payload dinamico "produto_valido" do arquivo "produtos-datapool.yml"
     Quando envio uma requisicao "POST" para a rota "/produtos"
     Entao o status code da resposta deve ser 201
+    E o tempo de resposta deve ser menor que 5000 milissegundos
     E o campo "message" na resposta JSON deve conter "Cadastro realizado com sucesso"
 ```
 
@@ -113,7 +114,7 @@ Abra o terminal na pasta raiz do projeto (`Serverest-java`) e rode:
 # Para rodar por domínio (@login, @usuarios, @produtos, @carrinhos):
 .\mvnw.cmd test "-Dcucumber.filter.tags=@produtos"
 
-# Para rodar TODOS os 45 cenários do projeto:
+# Para rodar TODOS os 59 cenários do projeto:
 .\mvnw.cmd test
 ```
 
@@ -136,9 +137,11 @@ Use exatamente a escrita abaixo nos seus arquivos `.feature` (só troque os valo
 | **Autenticar como Admin (`200`/`201`)** | `Dado que estou autenticado com um usuario da massa "usuario_admin_valido" do arquivo "usuarios-datapool.yml"` |
 | **Autenticar como Usuário Comum (`403`)** | `Dado que estou autenticado com um usuario da massa "usuario_comum_valido" do arquivo "usuarios-datapool.yml"` |
 | **Fazer chamada sem Token (`401`)** | `Dado que nao possuo token de autenticacao na sessao` |
+| **Enviar Token JWT adulterado (`401`)** | `Dado que informo um token de autenticacao invalido "Bearer token.adulterado.123" na sessao` |
 | **Carregar massa do arquivo YAML** | `Dado que carrego o payload dinamico "nome_da_massa" do arquivo "nome-arquivo.yml"` |
 | **Criar usuário válido e preparar Login (`200`)** | `Dado que possuo um usuario cadastrado a partir da massa "usuario_base_para_login" do arquivo "login-datapool.yml"` |
 | **Criar usuário prévio e salvar `_id`** | `Dado que possuo um usuario recem cadastrado na variavel "ID_USUARIO" a partir da massa "usuario_admin_valido" do arquivo "usuarios-datapool.yml"` |
+| **Criar usuário com carrinho ativo (`400`)** | `Dado que possuo um usuario com carrinho ativo salvo na variavel "ID_USUARIO_COM_CARRINHO"` |
 | **Reutilizar JSON do último usuário (`400`)** | `Dado que reutilizo o mesmo payload do usuario recem cadastrado` |
 | **Criar produto prévio e salvar `_id`** | `Dado que possuo um produto recem cadastrado na variavel "ID_PRODUTO" a partir da massa "produto_valido" do arquivo "produtos-datapool.yml"` |
 | **Reutilizar JSON do último produto (`400`)** | `Dado que reutilizo o mesmo payload do produto recem cadastrado` |
@@ -161,11 +164,12 @@ O passo é **sempre o mesmo**, mudando apenas o método (`GET`, `POST`, `PUT`, `
 
 ---
 
-### 🔵 Passos de Validação (`Entao`) — Onde você valida o Status e o Response
+### 🔵 Passos de Validação (`Entao`) — Onde você valida o Status, SLA e o Response
 
 | O que você quer validar | Passo exato para colocar no `.feature` |
 | :--- | :--- |
 | **Validar o Status Code (`200`, `201`, `400`, `401`, `403`)** | `Entao o status code da resposta deve ser 200` |
+| **Validar o SLA de Tempo de Resposta (ms)** | `E o tempo de resposta deve ser menor que 5000 milissegundos` |
 | **Validar mensagem ou campo do JSON** | `E o campo "message" na resposta JSON deve conter "Cadastro realizado com sucesso"` |
 | **Validar que um campo existe e não é nulo** | `E o campo "quantidade" na resposta JSON nao deve ser nulo` |
 | **Confirmar que o Token Bearer foi gerado** | `E o token Bearer deve ser gerado e salvo no contexto` |
@@ -177,7 +181,7 @@ O passo é **sempre o mesmo**, mudando apenas o método (`GET`, `POST`, `PUT`, `
 ## ⚠️ 4. Regra Importante da API ServeRest para IDs Inexistentes (`400`)
 
 Na API ServeRest, os endpoints de busca por ID (`GET /usuarios/{_id}`, `GET /produtos/{_id}`, `GET /carrinhos/{_id}`) validam primeiro se o parâmetro `_id` possui **exatamente 16 caracteres alfanuméricos**:
-* Se você passar um ID com tamanho diferente de 16 caracteres, a API retorna `"id deve ter exatamente 16 caracteres alfanuméricos"`.
+* Se você passar um ID com tamanho diferente de 16 caracteres (ex: `"idCurto123"`), a API retorna `"id deve ter exatamente 16 caracteres alfanuméricos"`.
 * Portanto, quando quiser testar a mensagem `"Usuário não encontrado"`, `"Produto não encontrado"` ou `"Carrinho não encontrado"`, passe sempre um ID fictício de **16 caracteres** (ex: `"idInexistente123"`, `"idProdInexist123"`, `"idCarrInexist123"`).
 
 ---

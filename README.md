@@ -2,7 +2,7 @@
 
 Estrutura completa de automação de testes de API construída sob os princípios de **Shift-Left Testing**, **Clean Architecture** e **BDD (Behavior-Driven Development)**, utilizando **Java 17+**, **REST-Assured**, **Cucumber** e **PicoContainer**.
 
-Atualmente o projeto cobre **100% dos domínios da API ServeRest (45 cenários automatizados)**: **Login**, **Usuários**, **Produtos** e **Carrinhos**.
+Atualmente o projeto cobre **100% dos domínios e regras avançadas da API ServeRest (59 cenários automatizados)**: **Login**, **Usuários**, **Produtos** e **Carrinhos**, incluindo **Integridade Referencial entre Domínios**, **Prova Matemática de Estoque (E2E)**, **Análise de Valor Limite**, **Segurança de Token JWT** e **SLA de Performance**.
 
 ---
 
@@ -17,19 +17,19 @@ Nesta arquitetura:
 1. **Passos Padronizados e Universais (`Dado que` / `Quando` / `Então`):** Os *Step Definitions* são modulares e genéricos. O QA testa qualquer endpoint (`GET`, `POST`, `PUT`, `DELETE`) reutilizando sempre os mesmos passos e alterando apenas a variável da URL (se mudar de API), a rota, a chave da massa YAML e o Status Code esperado.
 2. **Isolamento Total de Sessão (`TestContext` + PicoContainer):** Nenhuma variável global estática do REST-Assured é utilizada. O **PicoContainer** injeta uma instância exclusiva de `TestContext` por cenário, garantindo segurança para execução em paralelo (*Thread-Safe*) e encadeamento limpo de requisições (ex: capturar o Token Bearer no `/login` ou o `_id` de um produto e utilizá-lo automaticamente no carrinho).
 3. **Zero Dados Fixos no Código (`DataPool YAML` + `Datafaker` + Interpolação de Contexto):** Os payloads de envio residem em arquivos YAML externos (`src/test/resources/datapool/*.yml`) com suporte a *placeholders* dinâmicos (`{{DYNAMIC_NAME}}`, `{{DYNAMIC_EMAIL}}`, `{{DYNAMIC_PASSWORD}}`, `{{DYNAMIC_PRODUCT}}`) e variáveis salvas na sessão (`{{ID_PRODUTO}}`), eliminando falhas intermitentes (*Flaky Tests*) por colisão de massa.
-4. **Validação de Contrato Nativa (JSON Schema):** Garante na esteira de desenvolvimento que a estrutura, tipagem e campos obrigatórios do JSON de resposta respeitam os 11 contratos oficiais mapeados em `src/test/resources/schemas/`.
+4. **Validação de Contrato Nativa (JSON Schema) e SLA de Tempo de Resposta:** Garante na esteira de desenvolvimento que a estrutura, tipagem e campos obrigatórios do JSON de resposta respeitam os 11 contratos oficiais mapeados em `src/test/resources/schemas/` e que o tempo de resposta atende ao SLA definido.
 
 ---
 
-## 📊 2. Cobertura Atual de Testes (45 Cenários)
+## 📊 2. Cobertura Atual de Testes (59 Cenários)
 
-| Domínio | Arquivo Feature | Tag Principal | Endpoints Cobertos | Cenários |
+| Domínio | Arquivo Feature | Tag Principal | Endpoints e Regras Cobertas | Cenários |
 | :--- | :--- | :---: | :--- | :---: |
-| **Autenticação** | `login.feature` | `@login` | `POST /login` (`200`, `401`) | **2** |
-| **Usuários** | `usuarios_smoke.feature` | `@usuarios` | `GET /usuarios`, `POST /usuarios`, `GET /usuarios/{_id}`, `PUT /usuarios/{_id}`, `DELETE /usuarios/{_id}` (`200`, `201`, `400`) | **10** |
-| **Produtos** | `produtos.feature` | `@produtos` | `GET /produtos`, `POST /produtos`, `GET /produtos/{_id}`, `PUT /produtos/{_id}`, `DELETE /produtos/{_id}` (`200`, `201`, `400`, `401`, `403`) | **17** |
-| **Carrinhos** | `carrinhos.feature` | `@carrinhos` | `GET /carrinhos`, `POST /carrinhos`, `GET /carrinhos/{_id}`, `DELETE /carrinhos/concluir-compra`, `DELETE /carrinhos/cancelar-compra` (`200`, `201`, `400`, `401`) | **16** |
-| **TOTAL** | **4 Features** | `@api` | **Todos os 16 endpoints da API ServeRest** | **45** |
+| **Autenticação** | `login.feature` | `@login` | `POST /login` (`200`, `401`, formato de e-mail inválido `400`, campos em branco `400`, SLA e JSON Schema) | **4** |
+| **Usuários** | `usuarios_smoke.feature` | `@usuarios` | `GET`, `POST`, `GET/{_id}`, `PUT/{_id}`, `DELETE/{_id}` (`200`, `201`, `400`, flag admin inválida, ID fora de 16 caracteres, edição com e-mail duplicado e bloqueio de exclusão com carrinho ativo) | **14** |
+| **Produtos** | `produtos.feature` | `@produtos` | `GET`, `POST`, `GET/{_id}`, `PUT/{_id}`, `DELETE/{_id}` (`200`, `201`, `400`, `401`, `403`, preço zero, quantidade negativa, token JWT adulterado e bloqueio de exclusão de produto em carrinho) | **21** |
+| **Carrinhos** | `carrinhos.feature` | `@carrinhos` | `GET`, `POST`, `GET/{_id}`, `DELETE concluir-compra`, `DELETE cancelar-compra` (`200`, `201`, `400`, `401`, quantidade zero, token adulterado e **Prova Matemática de Estoque E2E**) | **20** |
+| **TOTAL** | **4 Features** | `@api` | **Todos os 16 endpoints da API ServeRest + 5 Frentes Avançadas de Qualidade** | **59** |
 
 ---
 
@@ -76,27 +76,17 @@ Nesta arquitetura:
 │   ├── 📁 config/
 │   │   └── 📄 application.properties             # Variáveis de URL das APIs (Suporte Multi-API) e Timeouts
 │   ├── 📁 datapool/
-│   │   ├── 📄 login-datapool.yml                 # Massa dinâmica do domínio de Login
-│   │   ├── 📄 usuarios-datapool.yml              # Massa dinâmica do domínio de Usuários
-│   │   ├── 📄 produtos-datapool.yml              # Massa dinâmica do domínio de Produtos
+│   │   ├── 📄 login-datapool.yml                 # Massa dinâmica e limites do domínio de Login
+│   │   ├── 📄 usuarios-datapool.yml              # Massa dinâmica e limites do domínio de Usuários
+│   │   ├── 📄 produtos-datapool.yml              # Massa dinâmica e limites do domínio de Produtos
 │   │   └── 📄 carrinhos-datapool.yml             # Massa dinâmica do domínio de Carrinhos (com listas e {{ID_PRODUTO}})
 │   ├── 📁 features/
-│   │   ├── 📄 login.feature                      # 2 cenários BDD de Autenticação (200 e 401)
-│   │   ├── 📄 usuarios_smoke.feature             # 10 cenários BDD de Usuários
-│   │   ├── 📄 produtos.feature                   # 17 cenários BDD de Produtos (incluindo RBAC 401 e 403)
-│   │   └── 📄 carrinhos.feature                  # 16 cenários BDD de Carrinhos (estoque, concluir e cancelar compra)
+│   │   ├── 📄 login.feature                      # 4 cenários BDD de Autenticação (200, 401 e 400)
+│   │   ├── 📄 usuarios_smoke.feature             # 14 cenários BDD de Usuários
+│   │   ├── 📄 produtos.feature                   # 21 cenários BDD de Produtos (incluindo RBAC 401/403 e limites)
+│   │   └── 📄 carrinhos.feature                  # 20 cenários BDD de Carrinhos (incluindo E2E de Estoque)
 │   └── 📁 schemas/
-│       ├── 📄 login-200-schema.json              # Contratos JSON Schema de Login (200 e 401)
-│       ├── 📄 login-401-schema.json
-│       ├── 📄 usuarios-lista-200-schema.json     # Contratos JSON Schema de Usuários (Lista, Post 201 e Busca ID)
-│       ├── 📄 usuarios-post-201-schema.json
-│       ├── 📄 usuarios-id-200-schema.json
-│       ├── 📄 produtos-lista-200-schema.json     # Contratos JSON Schema de Produtos (Lista, Post 201 e Busca ID)
-│       ├── 📄 produtos-post-201-schema.json
-│       ├── 📄 produtos-id-200-schema.json
-│       ├── 📄 carrinhos-lista-200-schema.json    # Contratos JSON Schema de Carrinhos (Lista, Post 201 e Busca ID)
-│       ├── 📄 carrinhos-post-201-schema.json
-│       └── 📄 carrinhos-id-200-schema.json
+│       └── 📄 *-schema.json                      # 11 contratos JSON Schema (Login, Usuários, Produtos e Carrinhos)
 │
 ├── 📄 GUIA_DO_TESTER.md                          # 📘 Manual passo a passo para criação de novos cenários BDD
 ├── 📄 mvnw / mvnw.cmd                            # Maven Wrapper embutido (dispensa instalação manual do Maven)
@@ -109,23 +99,23 @@ Nesta arquitetura:
 
 O projeto já inclui o **Maven Wrapper** (`mvnw` / `mvnw.cmd`), exigindo apenas o **JDK 17+** configurado no ambiente.
 
-### Executar todos os 45 cenários da suíte
+### Executar todos os 59 cenários da suíte
 ```powershell
 .\mvnw.cmd clean test
 ```
 
 ### Executar por domínio ou cenário específico via `@tag`
 ```powershell
-# Domínio de Login (2 cenários):
+# Domínio de Login (4 cenários):
 .\mvnw.cmd test "-Dcucumber.filter.tags=@login"
 
-# Domínio de Usuários (10 cenários):
+# Domínio de Usuários (14 cenários):
 .\mvnw.cmd test "-Dcucumber.filter.tags=@usuarios"
 
-# Domínio de Produtos (17 cenários):
+# Domínio de Produtos (21 cenários):
 .\mvnw.cmd test "-Dcucumber.filter.tags=@produtos"
 
-# Domínio de Carrinhos (16 cenários):
+# Domínio de Carrinhos (20 cenários):
 .\mvnw.cmd test "-Dcucumber.filter.tags=@carrinhos"
 ```
 

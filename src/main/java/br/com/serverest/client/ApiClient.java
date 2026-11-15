@@ -32,6 +32,8 @@ public class ApiClient {
 
     public void prepareRegisteredUserForLogin(String dataPoolFile, String datasetKey) {
         Map<String, Object> userMap = registerDynamicUser(dataPoolFile, datasetKey);
+        String createdId = testContext.getResponse().jsonPath().getString("_id");
+        testContext.putState("LAST_AUTH_USER_ID", createdId);
         Map<String, Object> credentials = new LinkedHashMap<>();
         credentials.put("email", userMap.get("email"));
         credentials.put("password", userMap.get("password"));
@@ -77,6 +79,12 @@ public class ApiClient {
         sendRequest("POST", "/carrinhos");
         testContext.putState(idContextKey, testContext.getResponse().jsonPath().getString("_id"));
         testContext.resetRequestSession();
+    }
+
+    public void registerUserWithActiveCart(String userContextKey) {
+        authenticateWithDynamicUser("usuarios-datapool.yml", "usuario_admin_valido");
+        testContext.putState(userContextKey, testContext.getState("LAST_AUTH_USER_ID"));
+        registerCartAndStoreContext("carrinhos-datapool.yml", "carrinho_valido", "ID_CARRINHO");
     }
 
     private void ensureAuthenticatedAdmin() {

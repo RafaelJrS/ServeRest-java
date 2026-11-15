@@ -8,3 +8,10 @@ login_credenciais_invalidas:
   email: "{{DYNAMIC_EMAIL}}"
   password: "{{DYNAMIC_PASSWORD}}"
 
+login_email_formato_invalido:
+  email: "email_sem_arroba.com"
+  password: "{{DYNAMIC_PASSWORD}}"
+
+login_campos_em_branco:
+  email: ""
+  password: ""

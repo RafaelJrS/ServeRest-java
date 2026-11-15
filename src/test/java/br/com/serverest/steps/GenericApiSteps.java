@@ -43,6 +43,11 @@ public class GenericApiSteps {
         testContext.setAuthToken(null);
     }
 
+    @Dado("que informo um token de autenticacao invalido {string} na sessao")
+    public void definirTokenDeAutenticacaoInvalidoNaSessao(String invalidToken) {
+        testContext.setAuthToken(invalidToken);
+    }
+
     @Dado("que carrego o payload dinamico {string} do arquivo {string}")
     public void carregarPayloadDinamicoDoYaml(String datasetKey, String dataPoolFile) {
         Map<String, Object> dynamicData = DataPoolReader.getDynamicPayload(
@@ -60,6 +65,11 @@ public class GenericApiSteps {
     @Dado("que possuo um usuario recem cadastrado na variavel {string} a partir da massa {string} do arquivo {string}")
     public void cadastrarUsuarioESalvarIdNoContexto(String idContextKey, String datasetKey, String dataPoolFile) {
         apiClient.registerUserAndStoreContext(dataPoolFile, datasetKey, idContextKey);
+    }
+
+    @Dado("que possuo um usuario com carrinho ativo salvo na variavel {string}")
+    public void cadastrarUsuarioComCarrinhoAtivoNoContexto(String userContextKey) {
+        apiClient.registerUserWithActiveCart(userContextKey);
     }
 
     @Dado("que reutilizo o mesmo payload do usuario recem cadastrado")
@@ -121,6 +131,14 @@ public class GenericApiSteps {
         assertThat(actualStatusCode)
                 .as("Validação de HTTP Status Code")
                 .isEqualTo(expectedStatusCode);
+    }
+
+    @Entao("o tempo de resposta deve ser menor que {long} milissegundos")
+    public void validarTempoDeRespostaMenorQue(long maxResponseTimeMs) {
+        long actualTimeMs = testContext.getResponse().getTime();
+        assertThat(actualTimeMs)
+                .as("Validação de SLA de tempo de resposta (ms)")
+                .isLessThan(maxResponseTimeMs);
     }
 
     @Entao("o campo {string} na resposta JSON deve conter {string}")
