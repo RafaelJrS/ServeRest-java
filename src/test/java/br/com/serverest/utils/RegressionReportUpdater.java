@@ -82,9 +82,11 @@ public final class RegressionReportUpdater {
     }
 
     private static Path resolveBrowserExecutable() {
-        Path edge = Path.of("C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe");
-        if (Files.exists(edge)) return edge;
-        Path chrome = Path.of("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe");
-        return Files.exists(chrome) ? chrome : null;
+        List<Path> candidates = List.of(
+                Path.of("C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"),
+                Path.of("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"),
+                Path.of("/usr/bin/google-chrome"),
+                Path.of("/usr/bin/chromium-browser"));
+        return candidates.stream().filter(Files::exists).findFirst().orElse(null);
     }
 }

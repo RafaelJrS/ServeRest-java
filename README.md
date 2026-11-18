@@ -1,5 +1,10 @@
 # 🚀 ServeRest API Automation — Arquitetura Modular em Java
 
+![Java 17](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![REST-Assured](https://img.shields.io/badge/REST--Assured-5.4.0-009688?style=for-the-badge)
+![Cucumber BDD](https://img.shields.io/badge/Cucumber-7.18.0-23D96C?style=for-the-badge&logo=cucumber&logoColor=white)
+![Status](https://img.shields.io/badge/QA_Sign--Off-59%2F59_PASS_(100%25)-10b981?style=for-the-badge)
+
 Estrutura completa de automação de testes de API construída sob os princípios de **Shift-Left Testing**, **Clean Architecture** e **BDD (Behavior-Driven Development)**, utilizando **Java 17+**, **REST-Assured**, **Cucumber** e **PicoContainer**.
 
 Atualmente o projeto cobre **100% dos domínios e regras avançadas da API ServeRest (59 cenários automatizados)**: **Login**, **Usuários**, **Produtos** e **Carrinhos**, incluindo **Integridade Referencial entre Domínios**, **Prova Matemática de Estoque (E2E)**, **Análise de Valor Limite**, **Segurança de Token JWT** e **SLA de Performance**.
@@ -119,14 +124,26 @@ O projeto já inclui o **Maven Wrapper** (`mvnw` / `mvnw.cmd`), exigindo apenas 
 .\mvnw.cmd test "-Dcucumber.filter.tags=@carrinhos"
 ```
 
-### Sobrescrever a URL base via linha de comando (ex: CI/CD ou ambiente local)
+### Sobrescrever a URL base ou ativar Execução Paralela via terminal
 ```powershell
+# Apontar para outro ambiente (ex: local ou homologação):
 .\mvnw.cmd test "-DAPI_SERVEREST=http://localhost:3000"
+
+# Ativar execução paralela (4 threads simultâneas via PicoContainer Thread-Safe):
+.\mvnw.cmd test "-Dcucumber.execution.parallel.enabled=true"
 ```
 
 ---
 
-## 📊 6. Relatórios de Execução e Sign-Off de Qualidade
+## ⚙️ 6. Esteira CI/CD no GitHub Actions (Sob Demanda e Trimestral — 100% Gratuita)
+
+O projeto conta com o workflow oficial [`.github/workflows/api-tests.yml`](./.github/workflows/api-tests.yml), configurado estrategicamente para **não disparar em cada push/commit**, evitando execuções desnecessárias enquanto novas frentes são criadas:
+* **Sob Demanda Manual (`workflow_dispatch`):** Na aba **Actions** do GitHub, basta clicar em **"Run workflow"** e escolher se deseja rodar a suíte completa ou apenas uma tag (`@smoke`, `@login`, `@usuarios`, `@produtos`, `@carrinhos`).
+* **Agendamento Trimestral (`schedule`):** Executa automaticamente uma vez a cada 3 meses (`0 6 1 */3 *` — dia 1º de Jan/Abr/Jul/Out) e publica os relatórios como artefatos baixáveis.
+
+---
+
+## 📊 7. Relatórios de Execução e Sign-Off de Qualidade
 
 A cada execução da suíte regressiva completa (`.\mvnw.cmd test`), o framework atualiza automaticamente 3 formatos de relatórios executivos prontos para auditoria, envio por e-mail ou documentação de entrega mensal:
 
@@ -139,7 +156,7 @@ A cada execução da suíte regressiva completa (`.\mvnw.cmd test`), o framework
 
 ---
 
-## 📘 7. Como Criar Novos Cenários de Teste?
+## 📘 8. Como Criar Novos Cenários de Teste?
 
 Para manter a padronização da escrita em Gherkin (`Dado que` / `Quando` / `Então`) e criar novos testes sem precisar programar em Java, consulte o manual dedicado do projeto:
 

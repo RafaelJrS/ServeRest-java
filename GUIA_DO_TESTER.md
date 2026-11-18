@@ -186,7 +186,28 @@ Na API ServeRest, os endpoints de busca por ID (`GET /usuarios/{_id}`, `GET /pro
 
 ---
 
-## ✅ 5. Checklist Rápido antes de abrir seu Pull Request / Commit
+## 🗺️ 5. Mapa Rápido de Endpoints, Contratos JSON Schema e Datapools YAML
+
+Consulte a tabela abaixo para saber exatamente qual arquivo `.yml` e qual contrato `.json` utilizar em cada rota:
+
+| Domínio | Verbo & Rota | Arquivo Datapool (`src/test/resources/datapool/`) | Contrato JSON Schema (`src/test/resources/schemas/`) |
+| :--- | :--- | :--- | :--- |
+| **Login** | `POST /login` | `login-datapool.yml` (`login_invalido`, `login_email_formato_invalido`, `login_campos_em_branco`) | `login-200-schema.json` / `login-401-schema.json` |
+| **Usuários** | `GET /usuarios` | *(Usa Query Params opcionais)* | `usuarios-lista-200-schema.json` |
+| **Usuários** | `POST /usuarios` | `usuarios-datapool.yml` (`usuario_admin_valido`, `usuario_comum_valido`, `usuario_flag_admin_invalida`) | `usuarios-post-201-schema.json` |
+| **Usuários** | `GET /usuarios/{_id}` | *(Usa Path Param `_id`)* | `usuarios-id-200-schema.json` |
+| **Usuários** | `PUT /usuarios/{_id}` | `usuarios-datapool.yml` (`usuario_edicao_valida`) | `usuarios-post-201-schema.json` *(quando cria via Upsert 201)* |
+| **Produtos** | `GET /produtos` | *(Usa Query Params opcionais)* | `produtos-lista-200-schema.json` |
+| **Produtos** | `POST /produtos` | `produtos-datapool.yml` (`produto_valido`, `produto_estoque_baixo`, `produto_preco_zero`, `produto_quantidade_negativa`) | `produtos-post-201-schema.json` |
+| **Produtos** | `GET /produtos/{_id}` | *(Usa Path Param `_id`)* | `produtos-id-200-schema.json` |
+| **Produtos** | `PUT /produtos/{_id}` | `produtos-datapool.yml` (`produto_edicao_valida`) | `produtos-post-201-schema.json` *(quando cria via Upsert 201)* |
+| **Carrinhos** | `GET /carrinhos` | *(Usa Query Params opcionais)* | `carrinhos-lista-200-schema.json` |
+| **Carrinhos** | `POST /carrinhos` | `carrinhos-datapool.yml` (`carrinho_valido`, `carrinho_produto_duplicado`, `carrinho_produto_inexistente`, `carrinho_quantidade_acima_estoque`, `carrinho_quantidade_zero`) | `carrinhos-post-201-schema.json` |
+| **Carrinhos** | `GET /carrinhos/{_id}` | *(Usa Path Param `_id`)* | `carrinhos-id-200-schema.json` |
+
+---
+
+## ✅ 6. Checklist Rápido antes de abrir seu Pull Request / Commit
 
 1. Colocou `# language: pt` na primeira linha do arquivo `.feature`?
 2. Usou as tags dinâmicas (`{{DYNAMIC_EMAIL}}`, `{{DYNAMIC_NAME}}`, `{{DYNAMIC_PRODUCT}}`) no arquivo `.yml` em vez de chumbar dados fixos?

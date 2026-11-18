@@ -1,0 +1,59 @@
+name: QA Regression Suite (Trimestral & Sob Demanda)
+
+on:
+  # 1. Execução Manual sob demanda (botão "Run workflow" na aba Actions do GitHub)
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Filtro de Tags Cucumber (deixe em branco para rodar o Regressivo Completo de 59 cenários)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - '@smoke'
+          - '@login'
+          - '@usuarios'
+          - '@produtos'
+          - '@carrinhos'
+
+  # 2. Execução Trimestral automática (Dia 1º a cada 3 meses às 06:00 UTC: Jan, Abr, Jul, Out)
+  schedule:
+    - cron: '0 6 1 */3 *'
+
+jobs:
+  api-regression-tests:
+    name: Execute ServeRest API Tests (Java 17)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 1. Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: ☕ 2. Configurar Java 17 (Temurin) e Cache Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: 🚀 3. Executar Suíte de Testes Automatizados
+        run: |
+          chmod +x mvnw
+          if [ -z "${{ github.event.inputs.tags }}" ]; then
+            ./mvnw test
+          else
+            ./mvnw test -Dcucumber.filter.tags="${{ github.event.inputs.tags }}"
+          fi
+
+      - name: 📦 4. Publicar Relatórios Executivos (HTML, PDF e Cucumber)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-executivos-qa
+          path: |
+            relatorios/
+            RELATORIO_FINAL_DE_TESTES.md
+            target/cucumber-reports/cucumber.html
+            target/cucumber-reports/cucumber.json
+          retention-days: 90
